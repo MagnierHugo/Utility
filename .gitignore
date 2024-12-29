@@ -1,0 +1,10 @@
+# Binary files
+.xmake
+build
+
+# IDE files
+.vs
+.vscode
+.idea
+
+vsxmake*/
