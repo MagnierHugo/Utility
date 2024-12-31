@@ -4,7 +4,7 @@ add_rules("mode.debug", "mode.release")
 
 target("Utility")
     set_rundir(".")
-    set_languages("c++20")
+    set_languages("c++23")
     add_files("src/**.cpp")
     add_headerfiles("include/**.hpp")
     add_includedirs("include")

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <functional>
-#include <memory>
+#include <optional>
 #include <variant>
 #include <string_view>
 
@@ -15,41 +15,113 @@ namespace utl {
     tmp<tn T>
     class Property {
     private:
-        using _get_func = std::function<T()>;
-        using _set_func = std::function<void(T)>;
-        using _get_set_variant = std::variant<std::monostate, _get_func, _set_func>;
+        using _get_func = std::optional<std::function<T()>>;
+        using _set_func = std::optional<std::function<void(const T&)>>;
+        using _get_set_variant = std::variant<std::monostate, std::function<T()>, std::function<void(const T&)>>;
 
-    public:        
+        friend class TestClass;
+
         struct Accessor {
             const std::string_view key;
             const _get_set_variant func;
+            Accessor() : key("null"), func(std::monostate{}) {}
+            Accessor(const std::string_view& _key, const _get_set_variant& _func = std::monostate{});
+        };
 
-            Accessor() : key("nil"), func(std::monostate{}) {}
-            Accessor(const std::string_view& _key, _get_set_variant _func = std::monostate{}) : key(_key), func(_func) {}
+        struct Accessors {
+            Accessor get;
+            Accessor set;
+            Accessors(const Accessor& first, const Accessor& second = Accessor());
+        };
+        
+        std::function<T()> default_get{
+            [this]() -> T { 
+                // return std::visit([this](auto&& arg) -> T {
+                //     if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, T>) {
+                //         return arg; // Directly return the value if it matches T
+                //     } else if constexpr (std::is_pointer_v<std::decay_t<decltype(arg)>>) {
+                //         return *arg; // Dereference if it's a pointer
+                //     } else {
+                //         static_assert(always_false<decltype(arg)>::value, "Unsupported type in variant.");
+                //     }
+                // }, m_value); 
+                if (auto result = std::get_if<std::shared_ptr<T>>(&m_value)) {
+                    return **result;
+                }
+                return std::get<T>(m_value);
+            }
+        };
+
+        std::function<void(const T&)> default_set{
+            [this](const T& value) -> void {
+                // std::visit([&value, this](auto&& arg) -> void {
+                //     if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, T>) {
+                //         arg = value; // Directly assign if it's a value
+                //     } else if constexpr (std::is_pointer_v<std::decay_t<decltype(arg)>>) {
+                //         *arg = value; // Dereference if it's a pointer
+                //     } else {
+                //         static_assert(always_false<decltype(arg)>::value, "Unsupported type in variant.");
+                //     }
+                // }, m_value);
+                if (auto result = std::get_if<std::shared_ptr<T>>(&m_value)) {
+                    **result = value;
+                } else {
+                    m_value = value;
+                }
+            }
         };
 
     public:
-        Property(T& var) : m_getter([&var]() { return var; }), m_setter([&var](T value) { var = value; }) {}
-        Property(T& var, const Accessor& first, const Accessor& second = Accessor())
-            : m_getter(std::get<_get_func>(ProcessAccessors(first, second, "get", var))),
-            m_setter(std::get<_set_func>(ProcessAccessors(first, second, "set", var))) {}
+        Property()
+            : m_value(T()), m_getter(default_get), m_setter(default_set),
+            m_is_external(false), m_has_getter(true), m_has_setter(true) {}
+        Property(const Accessors& acc)
+            : m_value(T()), m_getter(process_get(acc.get)), m_setter(process_set(acc.set)),
+            m_is_external(false), m_has_getter(has_getter()), m_has_setter(has_setter()) {}
+
+        Property(const T& value)
+            : m_value(value), m_getter(default_get), m_setter(default_set),
+            m_is_external(false), m_has_getter(true), m_has_setter(true) {}
+        Property(const T& value, const Accessors& acc)
+            : m_value(value), m_getter(process_get(acc.get)), m_setter(process_set(acc.set)),
+            m_is_external(false), m_has_getter(has_getter()), m_has_setter(has_setter()) {}
+
+        Property(const T* const value)
+            : m_value(std::make_shared<T>(*value)), m_getter(default_get), m_setter(default_set),
+            m_is_external(true), m_has_getter(true), m_has_setter(true) {}
+        Property(const T* const value, const Accessors& acc)
+            : m_value(std::make_shared<T>(*value)), m_getter(process_get(acc.get)), m_setter(process_set(acc.set)),
+            m_is_external(true), m_has_getter(has_getter()), m_has_setter(has_setter()) {}
 
         operator T() const;
 
-        Property<T>& operator=(Property<T>& other);
-        Property<T>& operator=(T value);
-        Property<T>& operator+=(T value);
-        Property<T>& operator-=(T value);
+        Property& operator=(const T& value);
+        Property& operator+=(const T& value);
+        Property& operator-=(const T& value);
+        Property& operator*=(const T& value);
+        Property& operator/=(const T& value);
 
-        friend std::ostream& operator<<(std::ostream& os, const Property& property) {
-            return os << property.m_getter();
-        }
-    
     private:
+        // T& m_value;
+        std::variant<T, std::shared_ptr<T>> m_value;
         const _get_func m_getter;
         const _set_func m_setter;
 
-        _get_set_variant ProcessAccessors(const Accessor& first, const Accessor& second, const std::string_view& key, T& var);
+        const bool m_is_external, m_has_getter, m_has_setter;
+        
+        // union {
+        //     T m_value;
+        //     T& m_value_ref;
+        // };
+
+        // T default_get();
+        // void default_set(const T& value);
+
+        bool has_getter() const;
+        bool has_setter() const;
+
+        static _get_func process_get(const Accessor& get);
+        static _set_func process_set(const Accessor& set);
 
     };
 
