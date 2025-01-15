@@ -18,5 +18,27 @@ using u32 = uint32_t;
 using i64 = int64_t;
 using u64 = uint64_t;
 
+using f32 = float;
+using f64 = double;
+using f128 = long double;
+
 tmp<tn T>
 struct always_false : std::false_type {};
+
+tmp<tn T>
+constexpr bool Is_Standard_Arithmetic_t = std::_Is_any_of_v<T, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64, f128>;
+
+tmp<tn T>
+constexpr bool Is_Standard_Integer_t = std::_Is_any_of_v<T, i8, u8, i16, u16, i32, u32, i64, u64>;
+
+tmp<tn T>
+constexpr bool Is_Standard_Unsigned_Integer_t = std::_Is_any_of_v<T, u8, u16, u32, u64>;
+
+tmp<tn T>
+constexpr bool Is_Standard_Signed_Arithmetic_t = (Is_Standard_Arithmetic_t<T> && !Is_Standard_Unsigned_Integer_t<T>);
+
+struct discarder {
+    tmp<tn T> constexpr inline void operator=(const T&) const noexcept {}
+};
+
+constexpr inline discarder _{};

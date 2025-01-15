@@ -9,7 +9,7 @@
 namespace utl {
 
     tmp<tn T>
-    Property<T>::Accessor::Accessor(const std::string_view& _key, const _get_set_variant& _func) : key(_key), func(_func) {
+    consteval Property<T>::Accessor::Accessor(const std::string_view& _key, const _get_set_variant& _func) : key(_key), func(_func) {
         static_assert(
             _key == "get" || _key == "set",
             "Error: A Bad Accessor Qualifier was given !! (was: " TOSTRING(_key) ")\nError in file " TOSTRING(__FILE__) " at line " TOSTRING(__LINE__)
@@ -17,7 +17,7 @@ namespace utl {
     }
 
     tmp<tn T>
-    Property<T>::Accessors::Accessors(const Accessor& first, const Accessor& second) {
+    consteval Property<T>::Accessors::Accessors(const Accessor& first, const Accessor& second) {
         if (first.key == "get") {
             get = first;
             set = second;

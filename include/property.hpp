@@ -24,14 +24,14 @@ namespace utl {
         struct Accessor {
             const std::string_view key;
             const _get_set_variant func;
-            Accessor() : key("null"), func(std::monostate{}) {}
-            Accessor(const std::string_view& _key, const _get_set_variant& _func = std::monostate{});
+            consteval Accessor() : key("null"), func(std::monostate{}) {}
+            consteval Accessor(const std::string_view& _key, const _get_set_variant& _func = std::monostate{});
         };
 
         struct Accessors {
             Accessor get;
             Accessor set;
-            Accessors(const Accessor& first, const Accessor& second = Accessor());
+            consteval Accessors(const Accessor& first, const Accessor& second = Accessor());
         };
         
         std::function<T()> default_get{
