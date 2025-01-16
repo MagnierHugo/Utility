@@ -29,6 +29,9 @@ tmp<tn T>
 constexpr bool Is_Standard_Arithmetic_t = std::_Is_any_of_v<T, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64, f128>;
 
 tmp<tn T>
+concept Standard_Arithmetic_t = Is_Standard_Arithmetic_t<T>;
+
+tmp<tn T>
 constexpr bool Is_Standard_Integer_t = std::_Is_any_of_v<T, i8, u8, i16, u16, i32, u32, i64, u64>;
 
 tmp<tn T>
@@ -36,6 +39,12 @@ constexpr bool Is_Standard_Unsigned_Integer_t = std::_Is_any_of_v<T, u8, u16, u3
 
 tmp<tn T>
 constexpr bool Is_Standard_Signed_Arithmetic_t = (Is_Standard_Arithmetic_t<T> && !Is_Standard_Unsigned_Integer_t<T>);
+
+tmp<std::size_t N, std::size_t Q>
+constexpr bool Is_Equal = N == Q;
+
+tmp<std::size_t N, std::size_t Q>
+concept Equal = Is_Equal<N, Q>;
 
 struct discarder {
     tmp<tn T> constexpr inline void operator=(const T&) const noexcept {}
