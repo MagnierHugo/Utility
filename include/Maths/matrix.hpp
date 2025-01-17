@@ -63,9 +63,20 @@ namespace utl {
         constexpr IntervalSpan<ValuesType> operator[](const std::size_t& index);
         constexpr const IntervalSpan<ValuesType> operator[](const std::size_t& index) const;
 
+        constexpr Matrix<T, N, Q> operator+(const Matrix<T, N, Q>& rhs) const;
+        constexpr Matrix<T, N, Q> operator-(const Matrix<T, N, Q>& rhs) const;
+
         tmp<tn Ty, std::size_t Ny, std::size_t Qy>
         requires(Standard_Arithmetic_t<Ty> && Valide_Size<Ny, Qy> && Equal<Ny, Q>)
         constexpr Matrix<T, N, Qy> operator*(const Matrix<Ty, Ny, Qy>& rhs) const;
+
+        tmp<tn Ty>
+        requires(Standard_Arithmetic_t<Ty>)
+        constexpr Matrix<T, N, Q> operator*(const Ty& scalar) const;
+
+        tmp<tn Ty>
+        requires(Standard_Arithmetic_t<Ty>)
+        constexpr Matrix<T, N, Q> operator/(const Ty& scalar) const;
 
         #pragma endregion
 

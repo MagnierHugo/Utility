@@ -128,6 +128,30 @@ namespace utl {
         return m;
     }
 
+    tmp<tn T, std::size_t N, std::size_t Q>
+    requires(Standard_Arithmetic_t<T> && Valide_Size<N, Q>)
+    tmp<tn Ty>
+    requires(Standard_Arithmetic_t<Ty>)
+    constexpr Matrix<T, N, Q> Matrix<T, N, Q>::operator*(const Ty& scalar) const {
+        Matrix<T, N, Q> m;
+        for (std::size_t i = 0; i < ValuesNumber; i++) {
+            m.m_values[i] = m_values * scalar;
+        }
+        return m;
+    }
+
+    tmp<tn T, std::size_t N, std::size_t Q>
+    requires(Standard_Arithmetic_t<T> && Valide_Size<N, Q>)
+    tmp<tn Ty>
+    requires(Standard_Arithmetic_t<Ty>)
+    constexpr Matrix<T, N, Q> Matrix<T, N, Q>::operator/(const Ty& scalar) const {
+        Matrix<T, N, Q> m;
+        for (std::size_t i = 0; i < ValuesNumber; i++) {
+            m.m_values[i] = m_values / scalar;
+        }
+        return m;
+    }
+
     #pragma endregion
 
     #pragma region MemberFunctions
